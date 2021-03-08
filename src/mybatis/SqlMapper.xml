@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- namespace속성:매퍼파일의 완전한경로 .xml는 생략 -->
+<!-- ※ibatis와는 다르게 id값에 .(dot)를 사용 못한다. -->
+<mapper namespace="mybatis.SqlMapper">
+	<select id="memberIsLogin" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) FROM member WHERE mem_email=#{mem_email} AND mem_pwd=#{mem_pwd}
+	</select>
+	<select id="memberIsLoginJson" parameterType="MemberDTO" resultType="MemberDTO">
+      	SELECT * FROM member WHERE mem_email=#{mem_email} AND mem_pwd=#{mem_pwd}
+    </select>
+    <update id="usingIncrease">
+    	UPDATE USING_TIME_COUNT SET COUNT = COUNT + 1 WHERE TIME_ = #{usingTime}
+    </update>
+
+	<select id="signView" parameterType="java.util.Map" resultType="MemberDTO">
+		SELECT * FROM MEMBER WHERE MEM_EMAIL = #{id}
+	</select>
+	<select id="selectCount" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT p.precount,r.resercount,(SELECT MAX(PRES_DATE) FROM
+		prescription WHERE MEM_EMAIL = #{id})resdate FROM(SELECT count(*)
+		precount FROM prescription WHERE MEM_EMAIL = #{id})p,
+		(SELECT count(*)
+		resercount FROM reservation WHERE MEM_EMAIL = #{id})r
+	</select>
+	<select id="deptone" parameterType="java.util.Map" resultType="java.util.Map">
+	select (select dept_name from (select dept_name,count(*) c from reservation WHERE mem_email = #{id} group by dept_name ORDER by c desc)WHERE rownum=1)dept_name
+,(SELECT hosp_name FROM 
+(select hosp_code,count(*) c from reservation WHERE mem_email = #{id} group by hosp_code ORDER by c desc)q
+join hospital h on q.hosp_code = h.hosp_code
+WHERE rownum=1)hosp_name from reservation WHERE rownum=1
+
+	</select>
+	<delete id="signDelete" parameterType="MemberDTO">
+		DELETE FROM MEMBER WHERE MEM_EMAIL = #{userid}
+	</delete>
+
+	<update id="signUpdate" parameterType="java.util.Map">
+		UPDATE MEMBER SET mem_name = #{name}, age = #{age}, gender = #{gender}, tel = #{tel}, height = #{height},weight = #{weight} where mem_email = #{id}
+	</update>
+
+	<select id="seletnew" parameterType="java.util.Map" resultType="reservationDTO">
+		SELECT h.hosp_name,r.sel_symp FROM reservation r JOIN hospital h on r.hosp_code=h.hosp_code WHERE r.mem_email = #{id} AND RES_DATE=(SELECT MAX(RES_DATE)FROM reservation)
+	</select>
+	<select id="selectill" parameterType="java.util.Map" resultType="java.util.Map">
+	select(select chronic_ill FROM history WHERE mem_email=#{id})CHRONIC_ILL,
+	ILL_NAME FROM  ILLNESS WHERE ILL_CODE IN (SELECT ILL_CODE FROM HIS_ILL WHERE HIST_NO = (select hist_no from history WHERE mem_email=#{id}))
+   	</select>
+   	<delete id="illdelete" parameterType="java.util.Map">
+   	DELETE HIS_ILL WHERE HIST_NO =(select hist_no from history WHERE mem_email=${id})
+   	</delete>
+    <!-- 공지사항 추가하기 -->
+    <insert id="insertNotice" parameterType="java.util.Map">
+        INSERT INTO notification_bbs VALUES(SEQ_NOTIFICATION.NEXTVAL,#{mem_email},#{title},#{content},SYSDATE,#{file_addr}, 0)
+    </insert>
+    <select id="getTotalRecordNotice" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) FROM NOTIFICATION_BBS
+	</select>
+    <!-- 공지사항 리스트보기 -->
+    <select id="listNotice" resultType="BoardDTO">
+    	SELECT * 
+		FROM (
+			SELECT ROWNUM RN, A.* 
+				FROM (
+						select * from NOTIFICATION_BBS order by noti_no DESC 
+						) A
+				)
+		WHERE RN BETWEEN #{start} AND #{end} 
+    	
+    </select>
+	<!-- 공지사항 상세보기 -->
+    <select id="detailNotice" resultType="BoardDTO">
+        select * from NOTIFICATION_BBS where noti_no = #{no}
+    </select>
+	<!-- 공지사항 삭제하기 -->
+    <delete id="deleteNotice">
+        delete from NOTIFICATION_BBS where noti_no = #{no}
+    </delete>
+	<!-- 공지사항 수정하기 -->
+    <update id="updateNotice"> 
+        update NOTIFICATION_BBS set title=#{title} , content = #{content} where noti_no = #{no} 
+    </update> 
+    <!-- 공지사항 카루셀 -->
+    <select id="selectImg" resultType="BoardDTO">
+    	SELECT file_addr,noti_no,ROWNUM FROM 
+		(SELECT * FROM notification_bbs WHERE file_addr is not NULL ORDER BY noti_no DESC) n
+		WHERE ROWNUM BETWEEN 1 AND 4
+    </select>
+    <!-- 공지사항 조회수 -->
+    <update id="hitNotice">
+    	UPDATE notification_bbs SET hit = hit+1 WHERE noti_no = #{no}
+    </update>
+    <!-- 공지사항 첫/마지막 번호 -->
+    <select id="getLast" parameterType="java.util.Map" resultType="int">
+    	SELECT NOTI_NO FROM (SELECT NOTI_NO FROM NOTIFICATION_BBS ORDER BY NOTI_NO DESC) WHERE ROWNUM <![CDATA[ <= ]]> 1
+   	</select>
+   	<select id="getFirst" parameterType="java.util.Map" resultType="int">
+    	SELECT NOTI_NO FROM NOTIFICATION_BBS WHERE ROWNUM <![CDATA[ <= ]]> 1
+   	</select>
+   	<select id="getNoticeNo" parameterType="java.util.Map" resultType="int">
+    	SELECT NOTI_NO FROM NOTIFICATION_BBS WHERE ROWNUM <![CDATA[ <= ]]> 1
+   	</select>
+
+	<!-- 처방전 등록  -->
+   	<insert id="presInsert" parameterType="java.util.Map">
+      	INSERT INTO prescription VALUES(SEQ_PRESCRIPTION.NEXTVAL,#{mem_email},SYSDATE,#{duration},#{count},#{medi_name},#{hos_name})
+   	</insert>
+   	<!-- 처방전 리스트 -->
+	<select id="presSelectList" parameterType="java.util.Map" resultType="java.util.Map">
+		SELECT m.mem_name,p.* FROM prescription p JOIN member m ON p.mem_email=m.mem_email WHERE p.mem_email = #{mem_email} order by pres_date desc
+	</select>
+   	<!-- 약 복용 -->
+   	<select id="getCurrCount" resultType="int">
+   		SELECT COUNT FROM PRESCRIPTION WHERE PRE_NO=#{preNo}
+   	</select>
+   	<update id="takePills" >
+   		UPDATE PRESCRIPTION SET COUNT = COUNT - 1 WHERE PRE_NO = #{preNo}
+   	</update>
+   	<insert id="alarmInsert" parameterType="java.util.Map">
+   		INSERT INTO pre_medi VALUES(#{preno},#{alarm})
+   	</insert>
+   	<delete id="alarmDelete" parameterType="java.util.Map">
+   		DELETE pre_medi WHERE pre_no=#{preno}
+   	</delete>
+   	<select id="alarmSelect" parameterType="java.lang.String" resultType="java.util.Map">
+   		SELECT alarm FROM pre_medi WHERE pre_no=#{preno} order by alarm
+   	</select>
+
+	<!-- 회원가입 -->
+	<insert id="signInsert" parameterType="java.util.Map">
+		INSERT INTO MEMBER VALUES(#{email}, #{pwd}, #{name}, #{gender}, #{tel}, #{age}, #{height}, #{weight}, #{role}, #{enable}, SYSDATE )
+	</insert>
+	<insert id="hisInsert" parameterType="java.util.Map">
+		INSERT INTO HISTORY VALUES(SEQ_HISTORY.NEXTVAL, #{email}, #{chronic})
+	</insert>
+	<select id="signGetNo" parameterType="java.util.Map" resultType="HistoryDTO">
+		SELECT HIST_NO FROM HISTORY WHERE MEM_EMAIL=#{email}
+	</select>
+	<insert id="illInsert" parameterType="java.util.Map">
+		INSERT INTO HIS_ILL VALUES(#{histNo}, #{illCode})
+	</insert>
+
+	<!-- 회원가입 검색 병원 -->
+	<select id="hosListSearch" parameterType="java.util.Map" resultType="HospitalDTO">
+		SELECT * FROM (SELECT * FROM HOSPITAL WHERE HOSP_NAME LIKE '%' || #{search_keyword} || '%') WHERE ROWNUM <![CDATA[ <= ]]> 30
+	</select>
+	<select id="selectedHosp" parameterType="java.util.Map" resultType="HospitalDTO">
+		SELECT * FROM HOSPITAL WHERE HOSP_CODE = #{hosp_code}
+	</select>
+	<update id="hosAuthSub" parameterType="java.util.Map">
+      UPDATE HOSPITAL SET AUTH = '승인대기중' WHERE HOSP_CODE = #{hospCode}
+  	</update>
+  	<update id="hosIdUpdate" parameterType="java.util.Map">
+      UPDATE HOSPITAL SET MEM_EMAIL = #{email}, AUTH_DATE = SYSDATE WHERE HOSP_CODE = #{hospCode}
+   	</update>
+
+	<!-- QnA -->
+	<select id="getTotalRecord" parameterType="java.util.Map" resultType="int">
+		SELECT COUNT(*) FROM QNA
+	</select>
+	<select id="listQnA" parameterType="java.util.Map" resultType="QnADTO">
+		SELECT * 
+		FROM (
+			SELECT ROWNUM RN, A.* 
+				FROM (
+						select * from qna ORDER BY QNA_NO DESC 
+						) A
+				)
+		WHERE RN BETWEEN #{start} AND #{end} 
+	</select>
+	<insert id="insertQnA" parameterType="java.util.Map">
+		INSERT INTO QNA VALUES(SEQ_QNA.NEXTVAL,#{user}, #{title}, #{content}, SYSDATE, NULL, 0)
+	</insert>
+	<update id="updateQnA" parameterType="java.util.Map">
+		UPDATE QNA SET title=#{title},content=#{content} WHERE qna_no=#{no}
+	</update>
+	<delete id="deleteQnA" parameterType="java.util.Map">
+		DELETE QNA WHERE qna_no=#{no}
+	</delete>
+	<select id="viewQnA" parameterType="java.util.Map" resultType="QnADTO">
+		select * from qna where qna_no=#{no}
+	</select>
+    <update id="hitQnA">
+    	UPDATE QNA SET hit = hit+1 WHERE qna_no = #{no}
+    </update>
+
+	<!-- QnA 답글 -->
+	<select id="commentSelect" parameterType="java.util.Map" resultType="QnADTO">
+		SELECT * FROM QNA WHERE qna_no = #{no} 
+	</select>
+	<update id="commentInsert" parameterType="java.util.Map">
+		UPDATE QNA SET ANSWER_CONTENT = #{answer} WHERE qna_no = #{no}
+	</update>
+	<update id="commentUpdate" parameterType="java.util.Map">
+		UPDATE QNA SET ANSWER_CONTENT = #{answer} WHERE qna_no = #{no}
+	</update>
+	<delete id="commentDelete" parameterType="java.util.Map">
+		DELETE QNA WHERE cno = #{cno}
+	</delete>
+	<delete id="commentDeleteByNo" parameterType="java.util.Map">
+		DELETE QNA WHERE no = #{no}
+	</delete>
+	
+	<!-- 예방정보 -->
+	<select id="preventionList" parameterType="java.util.Map" resultType="IllnessDTO">
+		SELECT * FROM ILLNESS WHERE ILL_CODE IN (SELECT ILL_CODE FROM HIS_ILL WHERE HIST_NO IN (SELECT HIST_NO FROM HISTORY WHERE MEM_EMAIL = #{userEmail}))
+	</select>
+	
+	<select id="AndRecentApt" parameterType="java.util.Map" resultType="ReservationDTO">
+		SELECT M.*, HR.* FROM MEMBER M JOIN (SELECT H.HOSP_NAME, R.* FROM HOSPITAL H JOIN RESERVATION R ON R.HOSP_CODE = H.HOSP_CODE) HR ON M.MEM_EMAIL = HR.MEM_EMAIL WHERE M.MEM_EMAIL = #{userEmail} AND ROWNUM <![CDATA[ <= ]]> 1
+	</select>
+	<select id="AndRecentPres" parameterType="java.util.Map" resultType="PrescriptionDTO">
+		SELECT * FROM PRESCRIPTION WHERE PRE_NO IN (SELECT PRE_NO FROM (SELECT PRE_NO FROM PRESCRIPTION WHERE MEM_EMAIL = #{userEmail} ORDER BY PRE_NO DESC) WHERE ROWNUM = 1)
+	</select>
+	<select id="AndPreAlarm" parameterType="java.util.Map" resultType="PrescriptionDTO">
+		SELECT p.medi_name, p.count, PM.* FROM PRE_MEDI PM JOIN PRESCRIPTION P ON PM.PRE_NO = P.PRE_NO WHERE PM.PRE_NO IN (SELECT PRE_NO FROM PRESCRIPTION WHERE MEM_EMAIL = #{userEmail}) ORDER BY ALARM
+	</select>
+  
+
+</mapper>

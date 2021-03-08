@@ -1,0 +1,92 @@
+@charset "UTF-8";
+/*custom font*/
+@import url(https://fonts.googleapis.com/css?family=Montserrat);
+
+/*basic reset*/
+* {
+	margin: 0;
+	padding: 0;
+}
+
+html {
+	height: 100%;
+	/*Image only BG fallback*/
+	/*background = gradient + image pattern combo*/
+	background: #white;
+}
+
+body {
+	font-family: montserrat, arial, verdana;
+	padding-top: 120px;
+}
+/*form styles*/
+#msform {
+	width: 1000px;
+	margin: 60px auto;
+	text-align: center;
+	position: relative;
+}
+
+#msform fieldset {
+	background: #white;
+	border: 0 none;
+	border-radius: 3px;
+	box-shadow: 0 0 15px 1px rgba(0, 0, 0, 0.4);
+	padding: 20px 30px;
+	box-sizing: border-box;
+	width: 80%;
+	margin: 0 10%;
+	/*stacking fieldsets above each other*/
+	position: relative;
+}
+
+/*inputs*/
+#msform input[type="text"], #msform input[type="password"] {
+	padding: 15px;
+	border: 1px solid #ccc;
+	border-radius: 3px;
+	margin-bottom: 10px;
+	width: 70%;
+	box-sizing: border-box;
+	font-family: montserrat;
+	color: #2C3E50;
+	font-size: 25px;
+	height: 60px;
+}
+
+/*buttons*/
+#msform .action-button {
+	width: 70%;
+	background: #608dfd;
+	font-weight: bold;
+	font-size: 30px;
+	color: white;
+	border: 0 none;
+	border-radius: 1px;
+	cursor: pointer;
+	padding: 10px 5px;
+	margin: 10px 5px;
+	height: 60px;
+	border-radius: 7px 7px 7px 7px;
+}
+
+#msform .action-button:hover, #msform .action-button:focus {
+	box-shadow: 0 0 0 2px white, 0 0 0 3px #27AE60;
+}
+/*headings*/
+.fs-title {
+	font-size: 50px;
+	text-transform: uppercase;
+	color: #2C3E50;
+	margin-bottom: 30px;
+}
+
+.text-center {
+	text-align: center;
+	padding-bottom: 5px;
+}
+
+.hr-style {
+	background-color: #e2e2e2;
+	width: 100%;
+}

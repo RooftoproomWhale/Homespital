@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE configuration  PUBLIC "-//mybatis.org//DTD Config 3.0//EN"  "http://mybatis.org/dtd/mybatis-3-config.dtd">
+ <!-- myBatis 환경설정파일
+     1]데이타베이스 연결정보 설정
+     2]매퍼파일의 위치정보 설정
+ -->
+<configuration>
+	
+	<!-- 자바빈 별칭 -->
+	<typeAliases>
+		<typeAlias alias="calendarDTO" type="com.kosmo.proj.service.CalendarDTO"/>
+		<typeAlias alias="MemberDTO" type="com.kosmo.proj.service.MemberDTO"/>	
+		<typeAlias alias="HospitalDTO" type="com.kosmo.proj.service.HospitalDTO"/>
+		<typeAlias alias="PharmacyDTO" type="com.kosmo.proj.service.PharmacyDTO"/>	
+		<typeAlias alias="reservationDTO" type="com.kosmo.proj.service.ReservationDTO"/>
+		<typeAlias alias="BoardDTO" type="com.kosmo.proj.service.BoardDTO"/>
+		<typeAlias alias="CustomUserDetails" type="com.kosmo.proj.util.CustomUserDetails"/>
+		<typeAlias alias="PrescriptionDTO" type="com.kosmo.proj.service.PrescriptionDTO"/>
+		<typeAlias alias="QnADTO" type="com.kosmo.proj.service.QnADTO"/>
+		<typeAlias alias="HistoryDTO" type="com.kosmo.proj.service.HistoryDTO"/>
+
+		<typeAlias alias="CovidEditDTO" type="com.kosmo.proj.service.CovidEditDTO"/>
+
+		<typeAlias alias="IllnessDTO" type="com.kosmo.proj.service.IllnessDTO"/>
+
+<!-- 		<typeAlias alias="PrescriptionDTO" type="com.kosmo.proj.service.PrescriptionDTO"/>		 -->
+		<!--MemoCommentDTO는 별칭 불필요. SELECT결과를 Map에 저장하기때문에  -->
+	</typeAliases>
+	
+	<!-- 매퍼파일(SQL쿼리 결과와 자바빈 매핑) 정보 설정 -->	
+	<mappers>
+		<mapper resource="mybatis/admin.xml" />
+		<mapper resource="mybatis/calendar.xml" />
+		<mapper resource="mybatis/map.xml" />
+		<mapper resource="mybatis/reservation.xml" />
+		<mapper resource="mybatis/SqlMapper.xml" />
+		<mapper resource="mybatis/hosp.xml" />
+	</mappers>
+</configuration>

@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 매퍼파일의 완전한 경로 : xml생략 -->
+	<mapper namespace="mybatis.calendar">
+	
+	<select id="calendarSelectList" parameterType="java.util.Map" resultType="calendarDTO">
+	select m.mem_name,p.* FROM member m JOIN prescription p  on m.mem_email =p.mem_email  WHERE p.mem_email = #{id}
+	</select>
+	
+	<select id="calendarSelectList2" parameterType="java.util.Map" resultType="reservationDTO">
+		select m.mem_name,h.hosp_name, r.* from member m join RESERVATION r on m.mem_email = r.mem_email join hospital h on r.hosp_code = h.hosp_code where m.mem_email = #{id} order by r.res_date desc
+	</select>
+	<update id="calendarUpdate" parameterType="java.util.Map">
+	 update reservation set RES_DATE = #{RES_DATE},RES_TIME=#{RES_TIME},APPROVED=#{APPROVED} WHERE RESERV_NO=#{reserv_NO}
+	</update>
+	<delete id="calendarDelete" parameterType="java.util.Map">
+		delete prescription WHERE pre_no= #{no}
+	</delete>
+	<delete id="calendarDelete2" parameterType="java.util.Map">
+		delete reservation WHERE reserv_no= #{no}
+	</delete>
+</mapper>

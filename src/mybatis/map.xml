@@ -1,0 +1,269 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!-- 매퍼파일의 완전한 경로 : xml생략 -->
+
+	<mapper namespace="mybatis.map">
+
+	
+
+	<select id="covidMapSelect" resultType="java.util.Map">
+
+      SELECT * FROM corona_patient
+
+   </select>
+
+   <select id="hospitalSelect" resultType="java.util.Map">
+
+      SELECT * FROM hospital
+
+   </select>
+
+   <select id="hospitalSelectByAddr" resultType="HospitalDTO">
+
+      SELECT * FROM hospital WHERE address = #{address}
+
+   </select>
+
+   <select id="hospitalSelectByKeyWord" parameterType="java.util.Map" resultType="java.util.Map">
+
+      <!-- SELECT * FROM hospital WHERE hosp_name LIKE '%' || #{search_keyword} || '%' -->
+
+      SELECT H.*, D.dept_name FROM hospital H JOIN hos_dept D ON H.hosp_code = D.hosp_code
+
+	  WHERE H.hosp_name LIKE '%' || #{search_keyword} || '%' 
+
+	  <if test="!(search_dept == null || search_dept.equals(''))">
+
+	  	  AND D.dept_name = #{search_dept}
+
+	  </if>
+
+   </select>
+
+   <select id="hospitalNameSelectByKeyWord" parameterType="java.util.Map" resultType="java.util.Map">
+
+      SELECT distinct hosp_name FROM hospital WHERE hosp_name LIKE '%' || #{search_keyword} || '%'
+
+   </select>
+
+ 
+
+   <select id="hospitalDepartCntSelect" parameterType="java.util.Map" resultType="int">
+
+      SELECT COUNT(*) FROM hospital H JOIN hos_dept D ON H.hosp_code = D.hosp_code
+
+	  WHERE H.address = #{address}
+
+   </select>
+
+   
+
+   <select id="hospitalDetailSelect" parameterType="java.util.Map" resultType="java.util.Map">
+
+      SELECT H.*, D.dept_name FROM hospital H JOIN hos_dept D ON H.hosp_code = D.hosp_code
+
+      WHERE H.address = #{address}
+
+      <if test="!(search_dept == null || search_dept.equals(''))">
+
+	  	  AND D.dept_name = #{search_dept}
+
+	  </if>
+
+   </select>
+
+ 
+
+   <select id="hospitalSelectByXY" parameterType="java.util.Map" resultType="HospitalDTO">
+
+      SELECT *
+
+      FROM(SELECT (6371*ACOS(COS(RADIANS(#{lng}))*COS(RADIANS(cor_x))*COS(RADIANS(cor_y)-RADIANS(#{lat}))+SIN(RADIANS(#{lng}))*SIN(RADIANS(cor_x)))) 
+
+      AS distanceByXY, h.*,hd.dept_name
+
+      FROM hospital h JOIN hos_dept hd ON h.hosp_code = hd.hosp_code) disData
+
+      WHERE disData.distanceByXY <![CDATA[ <= ]]> 0.5
+
+   </select>
+
+ 
+
+   <select id="pharmacySelectByKeyWord" parameterType="java.util.Map" resultType="java.util.Map">
+
+      SELECT * FROM pharmacy WHERE phar_name LIKE '%' || #{search_keyword} || '%'
+
+   </select>
+
+   <select id="pharmacyNameSelectByKeyWord" parameterType="java.util.Map" resultType="java.util.Map">
+
+      SELECT distinct phar_name FROM pharmacy WHERE phar_name LIKE '%' || #{search_keyword} || '%'
+
+   </select>
+
+ 
+
+   <select id="pharmacyDetailSelect" parameterType="java.util.Map" resultType="java.util.Map">
+
+      SELECT * FROM pharmacy WHERE address = #{address}
+
+   </select>
+
+   <select id="pharmacySelectByXY" parameterType="java.util.Map" resultType="pharmacyDTO">
+
+      SELECT *
+
+      FROM(SELECT (6371*ACOS(COS(RADIANS(#{lng}))*COS(RADIANS(cor_x))*COS(RADIANS(cor_y)-RADIANS(#{lat}))+SIN(RADIANS(#{lng}))*SIN(RADIANS(cor_x)))) 
+
+      AS distanceByXY, p.*
+
+      FROM pharmacy p) disData
+
+      WHERE disData.distanceByXY <![CDATA[ <= ]]> 0.5
+
+   </select>
+
+   <select id="SelectReservationByAddr" parameterType="java.util.Map" resultType="int">
+
+		<!-- SELECT count(*) 
+
+		FROM reservation 
+
+		WHERE hosp_Code = (SELECT hosp_code FROM hospital WHERE address = #{address} AND AUTH = '제휴승인됨' AND approved = '승인됨') 
+
+		AND TO_CHAR(SYSDATE,'YYYY-MM-DD') <![CDATA[ = ]]> RES_DATE
+
+		AND RES_TIME <![CDATA[ > ]]> TO_CHAR(SYSDATE + 60/24/60 ,'HH24:MI') -->
+
+		SELECT count(*) 
+
+		FROM reservation 
+
+		WHERE hosp_code = 
+
+		(SELECT hosp_code FROM hospital WHERE address = #{address} AND AUTH = '제휴승인됨') 
+
+		AND approved = '승인됨' AND TO_CHAR(SYSDATE,'YYYY-MM-DD') <![CDATA[ = ]]> RES_DATE
+
+		AND RES_TIME <![CDATA[ < ]]> TO_CHAR(SYSDATE + 60/24/60 ,'hh24:mi')
+
+		AND RES_TIME <![CDATA[ > ]]> TO_CHAR(SYSDATE ,'hh24:mi')
+
+	</select>
+
+	<select id="SelectCheckReservation" parameterType="java.util.Map" resultType="int">
+
+		SELECT count(*) 
+
+		FROM reservation 
+
+		WHERE hosp_Code = 
+
+	    (SELECT hosp_code 
+
+	    FROM hospital 
+
+	    WHERE address = #{address}) 
+
+	    AND 
+
+	    (TO_CHAR(SYSDATE,'YYYY-MM-DD') = #{datepick} 
+
+	    AND TO_NUMBER(SUBSTR(#{hourMinute},-2)) = TRUNC(TO_NUMBER(SUBSTR(TO_CHAR(SYSDATE,'HH24:MI'),-2)) / 10)*10
+
+	    AND TO_NUMBER(SUBSTR(#{hourMinute},1,2)) = TRUNC(TO_NUMBER(SUBSTR(TO_CHAR(SYSDATE,'HH24:MI'),1,2)))
+
+	    ) 
+
+	    AND approved='승인됨'
+
+	</select>
+
+	<select id="getReservationByEmail" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT m.mem_name,h.hosp_name, r.* 
+
+		FROM member m 
+
+		JOIN reservation r on m.mem_email = r.mem_email 
+
+		JOIN hospital h on r.hosp_code = h.hosp_code 
+
+		WHERE m.mem_email = #{mem_email}
+
+	</select>
+
+	<select id="isPreviousReservation" parameterType="java.util.Map" resultType="int">
+
+		SELECT COUNT(*) FROM reservation WHERE RES_DATE = #{datepick} AND #{hourMinute} <![CDATA[ < ]]> TO_CHAR(SYSDATE,'HH24:MI')
+
+	</select>
+
+	<select	id="isDuplicateReservation" parameterType="java.util.Map" resultType="int">
+
+		SELECT count(*) FROM reservation 
+
+		WHERE hosp_Code = (SELECT hosp_code FROM hospital WHERE address = #{address}) 
+
+		AND mem_email = #{email}
+
+		AND res_date = #{datepick} 
+
+	</select>
+
+	<select	id="getAnotherReservation" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT r.*,h.hosp_name FROM reservation r JOIN hospital h ON h.hosp_Code = r.hosp_Code
+
+		WHERE r.hosp_Code != (SELECT hosp_code FROM hospital WHERE address = #{address}) 
+
+		AND r.mem_email = #{email}
+
+		AND r.RES_DATE = TO_CHAR(SYSDATE,'YYYY-MM-DD')
+
+		AND r.RES_TIME <![CDATA[ > ]]> TO_CHAR(SYSDATE,'hh24:mi')
+
+	</select>
+
+	<insert id="InsertReservation" parameterType="java.util.Map">
+
+		INSERT INTO reservation VALUES(SEQ_RESERVATION.NEXTVAL,
+
+		(SELECT hosp_code FROM hospital WHERE address = #{address}),
+
+		#{department},#{email},#{datepick},#{hourMinute},SYSDATE,#{symptom},'승인대기중')
+
+	</insert>
+
+	<delete id="deleteReservation" parameterType="java.util.Map">
+
+		DELETE FROM reservation WHERE reserv_no=#{reserv_no}
+
+	</delete>
+
+	<select id="getSymptomByHospital" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT * FROM symptom WHERE dept_name = #{dept_name}
+
+	</select>
+
+	<select id="getPresByUser" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT * FROM prescription WHERE mem_email = #{mem_email}
+
+	</select>
+
+	<select id="searchHospital" parameterType="java.util.Map" resultType="java.util.Map">
+
+		SELECT * FROM hospital WHERE AUTH='제휴승인됨' AND ADDRESS  LIKE '%' || #{hosp_name} || '%'
+
+	</select>
+	
+	<select id="getTodayPres" parameterType="java.util.Map" resultType="java.util.Map">
+      SELECT * FROM prescription WHERE mem_email = #{mem_email} AND TO_CHAR(PRES_DATE, 'YYYY/MM/DD') = TO_CHAR(SYSDATE, 'YYYY/MM/DD')
+   </select>
+
+</mapper>

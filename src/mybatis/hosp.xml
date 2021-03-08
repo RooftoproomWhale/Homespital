@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- 매퍼파일의 완전한 경로 : xml생략 -->
+	<mapper namespace="mybatis.hosp">
+	
+	<select id="selecthos" parameterType="java.util.Map" resultType="HospitalDTO">
+	select * from HOSPITAL h join hos_dept d on h.hosp_code =d.hosp_code join member m on h.mem_email=m.mem_email where h.MEM_EMAIL= #{id}
+	</select>
+	<select id="selectmem" parameterType="java.util.Map" resultType="MemberDTO">
+	select m.* from
+	 HOSPITAL H join RESERVATION R on 
+	 H.HOSP_CODE = R.HOSP_CODE join MEMBER M on
+	  M.MEM_EMAIL = R.MEM_EMAIL where H.HOSP_CODE=#{hos_code} order by R.apply_time desc
+	</select>
+	<select id="selectres" parameterType="java.util.Map" resultType="ReservationDTO">
+	select R.* from
+	HOSPITAL H join RESERVATION R on 
+	 H.HOSP_CODE = R.HOSP_CODE join MEMBER M on
+	  M.MEM_EMAIL = R.MEM_EMAIL where H.HOSP_CODE=#{hos_code} order by R.apply_time desc
+	</select>
+	<update id="updatehos" parameterType="java.util.Map">
+	update hospital set 
+	hosp_name = #{hosp_name},
+	weekday_open = #{weekday_open},
+	weekday_close= #{weekday_close},
+	weekend_open = #{weekend_open},
+	weekend_close = #{weekend_close},
+	lunchtime = #{lunchtime},
+	mem_email = #{email},
+	address = #{address} where hosp_code = #{hosp_code}
+	</update>
+	<delete id="deletedept" parameterType="java.util.Map">
+	delete from hos_dept where hosp_code=#{hosp_code}
+	</delete>
+	<insert id="updatehosdept" parameterType="java.util.Map">
+	insert into hos_dept(hosp_code,dept_name) values (#{hosp_code},#{dept})
+	</insert>
+	<update id="updateRes" parameterType="java.util.Map">
+	update reservation set approved='승인됨' where reserv_no=#{resnum}
+	</update>
+	<update id="deniedRes" parameterType="java.util.Map">
+	update reservation set approved='거절됨' where reserv_no=#{resnum}
+	</update>
+	<update id="withdraw" parameterType="java.util.Map">
+	update member set mem_pwd='withdrawal' where mem_email=#{id}
+	</update>
+</mapper>
